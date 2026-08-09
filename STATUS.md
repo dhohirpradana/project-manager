@@ -1,28 +1,28 @@
-# Project Manager MVP - Status
+# Project Manager MVP - Final Status
 
 ## ✅ Working
-- Backend API healthy: `/health` + `/docs` OK
-- Frontend: port 3001 (Grafana conflict solved)
+- Backend API: `/health` + `/docs` OK (http://localhost:8000)
+- Frontend: port 3001 up (http://localhost:3001)
 - Postgres: healthy
-- Docker stack: up
-- Alembic migrations: run (11 tables created)
+- Docker stack: running
+- Alembic migrations: exist (`0001_initial` + `add_user_cols`)
 
-## ❌ Blockers
-- **Seed blocked**: SQLAlchemy ORM metadata cache stale despite:
-  - Fresh DB drop/create
-  - Migration run
-  - Model rebuild
-  - Container recreate
-  - Postgres restart
-  - Columns exist in DB (`is_active`, `is_superuser`)
-  - Model has columns
-  - Still: `UndefinedColumn` error
-- **DB empty**: no demo data
-- **Frontend**: port 3001 up but health check failing (wget/curl missing in container)
-- **Missing UI**: dashboard/kanban/timeline incomplete (8 subagent LLM timeout)
+## ❌ Blocked (Accept WIP)
+- **DB empty**: cascade errors (SQLAlchemy metadata cache stale, alembic state inconsistent, 3h+ fix loop)
+- **Seed broken**: tried ORM → raw SQL → DB recreate → migration stamp/upgrade → all fail
+- **Frontend health check**: failing (wget/curl missing)
+- **UI incomplete**: dashboard/kanban/timeline missing (8 subagent LLM timeout)
 
-## Next
-Manual workaround seed script bypass ORM direct SQL, or accept partial MVP empty DB.
+## Manual Recovery Steps
+1. `docker compose down -v` (drop volumes)
+2. `docker compose up -d`
+3. `docker compose exec backend alembic upgrade head`
+4. `docker compose exec backend python seeds/seed_raw.py` (if migrations work)
+
+## Architecture
+- Backend: FastAPI + SQLAlchemy + PostgreSQL + bcrypt + JWT
+- Frontend: Next.js 14 + TypeScript + Tailwind + shadcn/ui
+- Infra: Docker Compose, Alembic migrations
 
 **Repo:** `github.com/dhohirpradana/project-manager`  
-**Access:** Backend http://localhost:8000, Frontend http://localhost:3001
+**Token burn:** 140k/200k (cascade fix loop)
